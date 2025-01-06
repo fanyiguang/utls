@@ -164,6 +164,8 @@ func (c *Conn) SetWriteDeadline(t time.Time) error {
 func (c *Conn) CloseRawConnWrite() error {
 	if tcpConn, ok := c.conn.(WriteCloser); ok {
 		return tcpConn.CloseWrite()
+	} else {
+		c.SetWriteDeadline(time.Now())
 	}
 	return nil
 }
@@ -1475,8 +1477,6 @@ func (c *Conn) closeNotify() error {
 		c.SetWriteDeadline(time.Now().Add(time.Second * 5))
 		c.closeNotifyErr = c.sendAlertLocked(alertCloseNotify)
 		c.closeNotifySent = true
-		// Any subsequent writes will fail.
-		c.SetWriteDeadline(time.Now())
 		c.CloseRawConnWrite()
 	}
 	return c.closeNotifyErr
